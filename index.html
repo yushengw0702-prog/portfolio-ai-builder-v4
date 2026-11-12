@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>王予晟 · AI Builder 与视觉艺术作品集 · 第四版</title>
+<style>
+  :root{
+    --paper:#F6F6F3;
+    --card:#FFFFFF;
+    --ink:#111114;
+    --ink-soft:#3A3A40;
+    --muted:#77777F;
+    --faint:#A6A6AD;
+    --line:#E7E7E1;
+    --line-strong:#D8D8D1;
+    --accent:#2540FF;
+    --accent-ink:#1A2CB8;
+    --accent-wash:rgba(37,64,255,.07);
+    --dark:#111114;
+    --radius:16px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Roboto Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    line-height:1.55;
+  }
+  .mono{font-family:var(--mono)}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:inline-flex;
+    align-items:center;
+    gap:.6em;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--line-strong)}
+
+  /* ---------- HUD ---------- */
+  .hud{
+    position:fixed;top:0;left:0;right:0;height:60px;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(18px,4vw,54px);
+    background:rgba(246,246,243,.94);border-bottom:1px solid var(--line);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  .brand{display:flex;flex-direction:column;line-height:1.15;text-decoration:none;color:var(--ink)}
+  .brand b{font-size:14px;font-weight:600;letter-spacing:.01em}
+  .brand small{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+  /* progress bar */
+  .progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:50}
+
+  /* ---------- STAGE / SLIDES ---------- */
+  .stage{position:relative;padding-top:60px}
+  .slide{
+    position:relative;
+    padding:58px clamp(18px,4vw,54px) 76px;
+    scroll-margin-top:60px;
+  }
+  .slide + .slide{border-top:1px solid var(--line)}
+  .slide:focus{outline:none}
+  .wrap{width:100%;max-width:1220px;margin:0 auto}
+
+  /* ---------- COVER ---------- */
+  .cover{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,64px);align-items:center}
+  .cover-l h1{
+    line-height:1.14;letter-spacing:0;font-weight:640;
+    margin:22px 0 20px;
+  }
+  .cover-l h1 span{display:block}
+  .cover-title-main{font-size:62px}
+  .cover-title-main em{font-style:normal;color:var(--accent)}
+  .cover-title-line{font-size:40px}
+  .cover-title-last{font-size:29px;color:var(--accent);margin-top:7px}
+  .cover-lead{font-size:17px;color:var(--ink-soft);max-width:38ch}
+  .cover-meta{margin-top:34px;display:flex;flex-direction:column;gap:10px}
+  .cover-meta div{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--ink-soft)}
+  .cover-meta span.k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);width:74px;flex:none}
+  .cover-personal{margin-top:20px;display:flex;flex-wrap:wrap;gap:5px 18px;font-size:12px;line-height:1.6;color:var(--muted)}
+  .cover-index{margin:52px 0 12px;padding:18px 22px 14px;background:rgba(255,255,255,.76);border:1px solid rgba(216,216,209,.86);border-radius:8px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .cover-index-head{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-bottom:8px}
+  .cover-index-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+  .cover-index-link{display:flex;flex-direction:column;gap:9px;width:100%;min-width:0;padding:0 0 12px;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);cursor:pointer;font:500 13px/1.38 var(--sans);transition:color .2s}
+  .cover-index-link:hover,.cover-index-link:focus-visible{color:var(--accent-ink)}
+  .cover-index-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .cover-index-image{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;background:var(--card)}
+  .cover-index-label{display:flex;align-items:flex-start;gap:9px;width:100%}
+  .cover-index-link .n{flex:none;font:11px/1.6 var(--mono);color:var(--accent)}
+  .cover-index-link .t{min-width:0;overflow-wrap:anywhere}
+  .cover-index-more{display:flex;flex-wrap:wrap;gap:8px 22px;padding-top:12px}
+  .cover-index-more button{border:0;background:none;color:var(--muted);font:12px var(--sans);cursor:pointer}
+  .cover-index-more button:hover,.cover-index-more button:focus-visible{color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
+  .cover-r{position:relative}
+  .cover-carousel{position:relative;border-radius:var(--radius);overflow:hidden;background:var(--card)}
+  .cover-r img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius);display:block;filter:saturate(1.02);transition:opacity .22s ease}
+  .cover-r .frame{position:absolute;inset:0;border-radius:var(--radius);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);pointer-events:none;z-index:3}
+  .cover-hit{position:absolute;top:0;bottom:0;width:50%;border:0;background:transparent;cursor:pointer;z-index:2}
+  .cover-hit.prev{left:0}
+  .cover-hit.next{right:0}
+  .cover-hit:focus-visible,.cover-arrow:focus-visible{outline:2px solid #fff;outline-offset:-5px}
+  .cover-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:38px;height:38px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.7);background:rgba(17,17,20,.48);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;cursor:pointer;transition:.2s;
+    backdrop-filter:blur(5px)
+  }
+  .cover-arrow:hover{background:rgba(17,17,20,.72)}
+  .cover-arrow.prev{left:12px}
+  .cover-arrow.next{right:12px}
+  .cover-dots{position:absolute;right:14px;bottom:14px;z-index:4;display:flex;gap:6px}
+  .cover-dot{width:7px;height:7px;border:0;border-radius:50%;background:rgba(255,255,255,.55);cursor:pointer;padding:0;transition:.2s}
+  .cover-dot.active{width:18px;border-radius:999px;background:#fff}
+  .badge{
+    position:absolute;left:-14px;bottom:22px;background:var(--dark);color:#fff;border-radius:12px;
+    padding:12px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;line-height:1.5;
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.5)
+  }
+  .badge b{color:#fff}
+  .badge span{color:#9fa8ff}
+
+  /* ---------- ABOUT ---------- */
+  .home-background{margin-top:64px}
+  .sec-head{max-width:760px}
+  .sec-head h2{font-size:clamp(24px,3vw,38px);line-height:1.12;letter-spacing:-.015em;font-weight:620;margin:16px 0 14px}
+  .sec-head p{color:var(--ink-soft);font-size:clamp(14px,1.4vw,16.5px)}
+  .about-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
+  .tl-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 18px;transition:.25s}
+  .tl-card:hover{border-color:var(--line-strong);transform:translateY(-3px);box-shadow:0 20px 40px -28px rgba(0,0,0,.35)}
+  .tl-card span{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .tl-card h3{font-size:15px;font-weight:600;margin:12px 0 8px;line-height:1.35}
+  .tl-card p{font-size:13px;color:var(--muted);line-height:1.55}
+  .cap-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .chip{font-size:12.5px;color:var(--ink-soft);border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:7px 14px}
+  .chip.hot{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .about-awards{margin-top:52px;border-top:1px solid var(--line-strong);padding-top:26px}
+  .about-awards .sec-head{margin-bottom:18px}
+  .award-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px}
+  .award-item{display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;align-items:center;min-height:66px;padding:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+  .award-logo{width:86px;height:42px;display:flex;align-items:center;justify-content:center}
+  .award-logo img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+  .award-logo img.apple{width:38px;height:38px}
+  .award-wordmark{font-size:19px;font-weight:700;color:#111;letter-spacing:0}
+  .award-copy{min-width:0;line-height:1.35}
+  .award-copy b{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
+  .award-copy p{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .award-note{margin-top:10px;font-size:12px;color:var(--faint)}
+
+  /* ---------- PROJECT ---------- */
+  .p-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .p-meta{max-width:640px}
+  .p-kind{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .p-kind i{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
+  .p-index{font-family:var(--mono);font-size:13px;color:var(--faint);letter-spacing:.1em}
+  .p-title{font-size:clamp(23px,3vw,36px);line-height:1.1;letter-spacing:-.015em;font-weight:640;margin:12px 0 6px}
+  .p-sub{font-size:15px;color:var(--accent-ink);font-weight:500;margin-bottom:14px}
+  .p-intro{font-size:clamp(14px,1.35vw,16px);color:var(--ink-soft);max-width:70ch}
+  .p-site-link{display:inline-flex;margin-top:12px;color:var(--accent-ink);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+  .p-method{margin-top:12px;display:flex;flex-wrap:wrap;gap:7px}
+  .p-method span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--card)}
+
+  .media-bar{
+    margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding-bottom:10px;border-bottom:1px solid var(--line);
+  }
+  .media-bar .lab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .collapse-btn{
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-soft);
+    border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:6px 13px;cursor:pointer;transition:.2s;
+    display:inline-flex;align-items:center;gap:7px;
+  }
+  .collapse-btn:hover{border-color:var(--ink);color:var(--ink)}
+  .collapse-btn .ca{transition:transform .25s;display:inline-block}
+  .media-wrap.collapsed .strip-group{display:none}
+  .media-wrap.collapsed .collapse-btn .ca{transform:rotate(-90deg)}
+
+  .strip-group{margin-top:18px}
+  .group-head{display:flex;align-items:baseline;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .group-head h4{font-size:15px;font-weight:600}
+  .group-head p{font-size:13px;color:var(--muted)}
+  .group-desc{font-size:13px;color:var(--ink-soft);max-width:92ch;margin:-3px 0 12px;line-height:1.65}
+  .group-head .gv{
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--accent);cursor:pointer;
+    border:1px solid var(--accent);border-radius:999px;padding:3px 11px;transition:.2s;background:var(--accent-wash);
+  }
+  .group-head .gv:hover{background:var(--accent);color:#fff}
+
+  .strip{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 14px;scroll-snap-type:x proximity}
+  .strip::-webkit-scrollbar{height:8px}
+  .strip::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px}
+  .thumb{
+    position:relative;height:214px;flex:none;border-radius:12px;overflow:hidden;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);scroll-snap-align:start;transition:.25s;
+  }
+  .thumb:hover{transform:translateY(-4px);box-shadow:0 22px 44px -26px rgba(0,0,0,.4);border-color:var(--line-strong)}
+  .thumb img{height:100%;width:auto;display:block;object-fit:cover}
+  .thumb .cap{
+    position:absolute;left:0;right:0;bottom:0;padding:16px 12px 9px;font-size:11.5px;color:#fff;
+    background:linear-gradient(to top,rgba(0,0,0,.62),rgba(0,0,0,0));opacity:0;transition:.25s;
+  }
+  .thumb:hover .cap{opacity:1}
+  /* video tiles */
+  .thumb.vid{width:320px;background:#0e0e12}
+  .thumb.vid img{width:100%;height:100%;object-fit:cover;opacity:.62}
+  .thumb.vid video.preview-video{width:100%;height:100%;display:block;object-fit:cover;opacity:.86}
+  .thumb.vid .play{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;
+  }
+  .thumb.vid .play .ring{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.14);backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center}
+  .thumb.vid .play .ring::after{content:"";border-left:15px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+  .thumb.vid .play .vlab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .thumb.vid .prov{position:absolute;top:10px;left:12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#c9cfff;text-transform:uppercase}
+
+  .poster-strip .thumb{height:250px}
+  .exhibit-strip .thumb{height:190px}
+
+  .map-block{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px clamp(16px,2.4vw,30px)}
+  .map-block .mh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  .map-block .mh h4{font-size:16px;font-weight:600}
+  .map-block .mh p{font-size:12.5px;color:var(--muted);max-width:50ch}
+  .map-canvas{position:relative;width:100%;max-width:960px;margin:0 auto}
+  .map-canvas img.world{width:100%;display:block;opacity:.9}
+  .map-key{display:none}
+  .flag{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%)}
+  .flag i{width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;box-shadow:0 0 0 4px var(--accent-wash);animation:pulse 2.6s infinite}
+  .flag b{
+    position:absolute;left:50%;top:-6px;transform:translate(calc(-50% + var(--lx,0px)),calc(-100% + var(--ly,0px)));
+    white-space:nowrap;font-size:10.5px;font-weight:600;color:var(--ink);background:var(--card);
+    border:1px solid var(--line-strong);border-radius:6px;padding:2px 6px;box-shadow:0 6px 14px -8px rgba(0,0,0,.4)
+  }
+  @keyframes pulse{0%{box-shadow:0 0 0 0 var(--accent-wash)}70%{box-shadow:0 0 0 9px rgba(37,64,255,0)}100%{box-shadow:0 0 0 0 rgba(37,64,255,0)}}
+
+  .honor-grid{margin-top:26px}
+  .honor-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .hpanel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .hpanel span.t{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .hpanel ul{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:9px}
+  .hpanel li{font-size:13px;color:var(--ink-soft);padding-left:16px;position:relative;line-height:1.45}
+  .hpanel li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--line-strong)}
+
+  /* closing */
+  .closing{min-height:calc(100svh - 194px);display:flex;flex-direction:column;justify-content:center}
+  .closing h2{max-width:100%;font-size:clamp(34px,5.4vw,68px);line-height:1.12;font-weight:640}
+  .closing h2 em{font-style:normal;color:var(--accent)}
+  .closing-contact{margin-top:38px;display:flex;flex-wrap:wrap;gap:16px 30px}
+  .closing a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:4px;font-size:clamp(16px,1.8vw,22px)}
+  .closing a:hover{color:var(--accent-ink)}
+
+  /* ---------- LIGHTBOX ---------- */
+  .lb{position:fixed;inset:0;background:rgba(12,12,15,.94);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column}
+  .lb.open{display:flex}
+  body.lightbox-open{overflow:hidden}
+  .lb-stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;padding:56px 68px 12px;min-height:0}
+  .lb-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+  .lb-stage video{max-width:100%;max-height:100%;border-radius:8px;background:#000}
+  .lb-stage .embed{position:relative;width:min(1100px,92vw);aspect-ratio:16/9;max-height:82vh}
+  .lb-stage .embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:8px}
+  .lb-cap{color:#d7d7de;font-size:13px;font-family:var(--mono);letter-spacing:.04em;padding:6px 20px 20px;text-align:center;min-height:20px}
+  .lb-close{position:absolute;top:20px;right:24px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:#fff;font-size:20px;cursor:pointer;transition:.2s}
+  .lb-close:hover{background:rgba(255,255,255,.16)}
+  .lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:#fff;font-size:22px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center}
+  .lb-arrow:hover{background:rgba(255,255,255,.16)}
+  .lb-arrow.prev{left:20px}.lb-arrow.next{right:20px}
+  .lb-count{position:absolute;top:24px;left:26px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:#a9a9b4}
+
+  @media(max-width:900px){
+    .cover{grid-template-columns:1fr;gap:24px}
+    .cover-index-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .about-grid{grid-template-columns:1fr 1fr}
+    .p-top{flex-direction:column}
+    .slide{padding:44px 18px 64px}
+  }
+  @media(max-width:1100px){
+    .award-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:620px){
+    .cover-title-main{font-size:44px}
+    .cover-title-line{font-size:30px}
+    .cover-title-last{font-size:23px}
+    .cover-lead{font-size:15px}
+    .cover-index{padding:16px}
+    .home-background{margin-top:48px}
+    .about-grid{grid-template-columns:1fr}
+    .cover-index-grid{gap:14px 12px}
+    .cover-index-link{font-size:12.5px}
+    .award-list{grid-template-columns:1fr}
+    .honor-cols{grid-template-columns:1fr}
+    .flag b{display:none}
+    .map-key{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:12px;color:var(--muted);font-size:11px}
+  }
+  @media(max-width:360px){
+    .cover-title-main{font-size:38px}
+    .cover-title-line{font-size:26px}
+    .cover-title-last{font-size:21px}
+    .cover-index-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <header class="hud">
+    <a class="brand" href="#" onclick="go(0);return false;">
+      <b>王予晟 · YuSheng Wang</b>
+      <small>Portfolio 2026</small>
+    </a>
+  </header>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="lb" id="lb">
+    <button class="lb-close" id="lbClose">×</button>
+    <span class="lb-count" id="lbCount"></span>
+    <button class="lb-arrow prev" id="lbPrev">‹</button>
+    <button class="lb-arrow next" id="lbNext">›</button>
+    <div class="lb-stage" id="lbStage"></div>
+    <div class="lb-cap" id="lbCap"></div>
+  </div>
+
+<script>
+const A = "assets/";
+const thumbSrc = src => src.startsWith(A) ? A+"thumbs/"+src.slice(A.length)+".webp" : src;
+const THUMB_RATIOS = {"arvr/hero-1.jpg":1.7978,"arvr/hero-2.jpg":1.8147,"arvr/huimeng-1.jpg":1.7745,"arvr/huimeng-2.jpg":1.768,"arvr/huimeng-3.jpg":1.8216,"arvr/huiying-1.jpg":1.0245,"arvr/huiying-2.jpg":1.8045,"arvr/huiying-3.jpg":1.4159,"arvr/xuanchi-1.jpg":1.0256,"arvr/xuanchi-2.jpg":0.7069,"arvr/xuanchi-3.jpg":1.4656,"arvr/xunyin-1.jpg":1.0245,"arvr/xunyin-2.jpg":1.7778,"arvr/xunyin-3.jpg":1.7778,"arvr/xunzi-1.jpg":1.0245,"arvr/xunzi-2.jpg":2.1918,"arvr/xunzi-3.jpg":1.8569,"arvr/yiyun-1.jpg":1.0245,"arvr/yiyun-2.jpg":0.7069,"arvr/yiyun-3.jpg":0.462,"awards/apple.jpg":1.7647,"awards/tencent.jpg":1.7615,"bci/photo-1.jpg":1.3352,"bci/photo-2.jpg":1.3352,"bci/scene-1.jpg":0.75,"bci/scene-2.jpg":0.75,"bci/scene-3.jpg":1.3333,"bci/ui-1.jpg":1.7745,"bci/ui-2.jpg":1.7745,"bci/ui-3.jpg":1.7745,"bci/ui-4.jpg":1.7745,"bci/ui-5.jpg":1.7745,"bci/ui-6.jpg":1.7745,"echo-guard-slides/slide-01.png":1.7778,"echo-guard-slides/slide-02.png":1.7778,"echo-guard-slides/slide-03.png":1.7778,"echo-guard-slides/slide-04.png":1.7778,"echo-guard-slides/slide-05.png":1.7778,"echo-guard-slides/slide-06.png":1.7778,"echo-guard-slides/slide-07.png":1.7778,"echo-guard-slides/slide-08.png":1.7778,"echo-guard-slides/slide-09.png":1.7778,"homepulse/assurance-part-2.jpg":1.7778,"homepulse/attention-routing-part-3.jpg":1.7778,"homepulse/hardware-desk.jpg":0.8,"homepulse/home-display-prototype-01.jpg":0.75,"homepulse/home-display-prototype-02.jpg":1.3315,"homepulse/home-pulse-overview.jpg":1.7778,"homepulse/homepulse-animation-poster.jpg":1.4861,"homepulse/homepulse-interaction-poster.jpg":1.6,"homepulse/state-setup.jpg":1.7778,"homepulse/system-concept.jpg":1.7778,"homepulse/user-pain-evidence.jpg":2.406,"interactive/harmonious-1.jpg":1.0235,"interactive/harmonious-2.jpg":2.8319,"interactive/harmonious-3.jpg":1.4159,"interactive/luminous-01.jpg":0.75,"interactive/luminous-02.jpg":1.5,"interactive/luminous-03.jpg":1.5,"interactive/luminous-04.jpg":0.75,"interactive/luminous-05.jpg":0.75,"interactive/moheng-1.jpg":1.3333,"interactive/moheng-2.jpg":1.5,"interactive/moheng-3.jpg":1.5,"ai-education/card-1.jpg":0.75,"ai-education/card-2.jpg":0.75,"ai-education/card-3.jpg":0.75,"ai-education/process-still.jpg":1.3333,"ai-education/show-1.jpg":1.3333,"ai-education/show-2.jpg":0.75,"ai-education/ui-1.jpg":1.7745,"ai-education/ui-2.jpg":1.7811,"ai-education/ui-3.jpg":1.7944,"ai-education/ui-4.jpg":1.8079,"visual/exhibition-01.jpg":2.3389,"visual/exhibition-02.jpg":2.3296,"visual/exhibition-03.jpg":2.4559,"visual/exhibition-04.jpg":2.4324,"visual/jin-process.jpg":1.7615,"visual/poster-heping.jpg":0.7069,"visual/poster-jin.jpg":1.7082,"visual/poster-moyun.jpg":0.7069,"visual/poster-tonggen.jpg":0.7069,"wearable1/board-1.jpg":2.8319,"wearable1/board-2.jpg":2.8319,"wearable1/board-3.jpg":2.8319,"wearable1/board-4.jpg":2.8319,"wearable1/board-5.jpg":2.8319,"wearable1/board-6.jpg":2.8319,"wearable2/board-1.jpg":2.8319,"wearable2/board-2.jpg":2.8319,"wearable2/board-3.jpg":2.8319,"wearable2/board-4.jpg":2.8319,"wearable2/board-6.jpg":2.8319};
+const thumbRatio = src => THUMB_RATIOS[src.slice(A.length)] || 4/3;
+Object.assign(THUMB_RATIOS, {
+  "ai-education/user-research-01.webp":0.75,
+  "ai-education/user-research-02.webp":0.75
+});
+const COVER_IMAGES = [
+  {src:A+"intro/carousel-02.webp", alt:"首页轮播图片 01"},
+  {src:A+"intro/carousel-04.webp", alt:"首页轮播图片 02"},
+  {src:A+"intro/portrait.webp", alt:"设计共创现场 · 王予晟"},
+  {src:A+"intro/carousel-01.webp", alt:"首页轮播图片 04"},
+  {src:A+"intro/carousel-03.webp", alt:"首页轮播图片 05"},
+  {src:A+"intro/carousel-05.webp", alt:"首页轮播图片 06"},
+  {src:A+"intro/carousel-06.webp", alt:"首页轮播图片 07"}
+];
+const VISUAL_POSTERS = [
+  {src:A+"visual/poster-jin.jpg", cap:"《烬》· 生态公益海报 · 手工综合材质"},
+  {src:A+"visual/poster-moyun.jpg", cap:"《墨韵水袖》· 文化海报"},
+  {src:A+"visual/poster-tonggen.jpg", cap:"《同根·同源·同理心》· 公益海报"},
+  {src:A+"visual/poster-heping.jpg", cap:"《和平对话》· 公益海报"},
+  {src:A+"visual/jin-process.jpg", cap:"《烬》· 手工制作过程 · 小红书爆款"}
+];
+const VISUAL_EXHIBITIONS = [
+  {src:A+"visual/exhibition-01.jpg", cap:"希腊克里特岛印刷博物馆 · 展出现场"},
+  {src:A+"visual/exhibition-02.jpg", cap:"迪拜艾巴沙怡沙大酒店 · 展出现场"},
+  {src:A+"visual/exhibition-03.jpg", cap:"韩国国际海报双年展 · 展出现场"},
+  {src:A+"visual/exhibition-04.jpg", cap:"深圳 CEEC LOFT D · 展出现场"}
+];
+/* ---------------- DECK DATA ---------------- */
+const DECK = [
+  { type:"cover" },
+
+  { type:"project", kind:"重点项目 · 安克黑客松", index:"01",
+    cover:A+"homepulse/home-pulse-overview.jpg",
+    title:"Anker黑客松 · 智能安防｜Home Pulse-AI 家庭状态感知与提醒系统",
+    sub:"首届黑客松挑战赛 / 决赛入围 · 队长 / 场景洞察与产品定义",
+    intro:"作为队长参与 Anker 首届黑客松挑战赛决赛入围作品。针对用户人在外时被摄像头通知频繁打断、却仍要自己判断家中情况的问题，提出 Home Pulse：把大量安防事件汇总为持续可读的家庭状态，通过家庭记忆、状态面板与注意力路由，只在真正值得介入时提醒。",
+    method:["赛题与用户痛点洞察","家庭状态模型","家庭记忆与持续关注","证据与不确定性表达","注意力分级与提醒策略"],
+    siteLink:"https://yushengw0702-prog.github.io/home-pulse-vision-demo/site/",
+    groups:[
+      {name:"问题洞察与产品总览",desc:"从通知疲劳出发，将安防产品的核心单位从离散事件重新定义为用户关心的家庭状态。",images:[
+        {type:"img",src:A+"homepulse/home-pulse-overview.jpg",cap:"Home Pulse · 产品总览与产品主张"},
+        {type:"img",src:A+"homepulse/user-pain-evidence.jpg",cap:"用户痛点 · 通知过多与判断负担"}
+      ]},
+      {name:"原型与演示",desc:"结合 Home Display 实体原型、手机端状态流程与交互演示，呈现家庭状态如何被感知、理解和传达。",images:[
+        {type:"video-local",src:A+"homepulse/home-display-demo.mp4",poster:A+"homepulse/home-display-prototype-01.jpg",label:"Home Display 实物演示",cap:"Home Pulse · Home Display 原型现场演示",autoplayPreview:true},
+        {type:"video-local",src:A+"homepulse/homepulse-animation-demo.mp4",poster:A+"homepulse/homepulse-animation-poster.jpg",label:"Home Display 状态动画演示",cap:"Home Pulse · Buddy 状态动画演示",autoplayPreview:true},
+        {type:"video-local",src:A+"homepulse/homepulse-interaction-demo.mp4",poster:A+"homepulse/homepulse-interaction-poster.jpg",label:"Home Pulse 产品原型交互演示",cap:"Home Pulse · 产品原型交互演示",autoplayPreview:true},
+        {type:"img",src:A+"homepulse/home-display-prototype-01.jpg",cap:"Home Display 实体原型 · Buddy 状态展示"},
+        {type:"img",src:A+"homepulse/home-display-prototype-02.jpg",cap:"Home Display 实体原型 · 安心岛守护者"}
+      ]},
+      {name:"方案概述",desc:"将摄像头的离散事件转换为可理解的家庭状态，并按重要程度决定静默更新、轻提醒或紧急介入。",images:[
+        {type:"img",src:A+"homepulse/system-concept.jpg",cap:"系统方案 · 家庭记忆 / 状态面板 / 注意力路由"},
+        {type:"img",src:A+"homepulse/state-setup.jpg",cap:"关键流程 · 从自然语言关注到持续监控"},
+        {type:"img",src:A+"homepulse/assurance-part-2.jpg",cap:"Part 2 · 安心感：复杂事件汇总为一眼可读的家庭状态"},
+        {type:"img",src:A+"homepulse/attention-routing-part-3.jpg",cap:"Part 3 · 注意力分级：把正确的信息送到正确的注意力层级"}
+      ]}
+    ]},
+
+  { type:"project", kind:"重点项目 · AI Builder", index:"02",
+    cover:A+"ai-education/show-1.jpg",
+    title:"教育科技独角兽 · 深圳｜AI Agent + NFC 儿童创造力硬件",
+    sub:"场景定义 / AI Agent · NFC 软硬联动 / 功能原型",
+    intro:"在深圳一家教育科技独角兽的创新业务中，探索面向儿童创造力的 AI 产品：孩子「拍一拍 / 画一画」，AI Agent 将内容识别并生成可交互小游戏，再结合 NFC 实体卡片连接数字内容与实体触点。项目重点是把用户场景转化为可测试的 AI 功能原型。",
+    method:["需求调研：儿童创作场景与痛点","AI 功能场景定义","生成效果测试集设计","NFC 软硬件交互","用户教育与原型验证"],
+    media:[
+      {type:"img", src:A+"ai-education/user-research-01.webp", cap:"儿童创作场景 · 实地观察"},
+      {type:"img", src:A+"ai-education/user-research-02.webp", cap:"儿童创作场景 · 共创体验"},
+      {type:"img", src:A+"ai-education/ui-1.jpg", cap:"产品界面 · 创作流"},
+      {type:"img", src:A+"ai-education/ui-2.jpg", cap:"产品界面 · 生成结果"},
+      {type:"img", src:A+"ai-education/ui-3.jpg", cap:"产品界面 · 游戏化"},
+      {type:"img", src:A+"ai-education/ui-4.jpg", cap:"产品界面"},
+      {type:"img", src:A+"ai-education/card-1.jpg", cap:"NFC 实体卡片"},
+      {type:"img", src:A+"ai-education/card-2.jpg", cap:"NFC 实体卡片"},
+      {type:"img", src:A+"ai-education/card-3.jpg", cap:"NFC 实体卡片"},
+      {type:"img", src:A+"ai-education/show-1.jpg", cap:"实体展示"},
+      {type:"img", src:A+"ai-education/show-2.jpg", cap:"实体展示"},
+      {type:"img", src:A+"ai-education/process-still.jpg", cap:"儿童使用过程"},
+      {type:"video-local", src:A+"ai-education/demo1.mp4", poster:A+"ai-education/ui-1.jpg", label:"演示 01 · 拍一拍生成", cap:"儿童创造力产品 · 交互演示 01"},
+      {type:"video-local", src:A+"ai-education/demo2.mp4", poster:A+"ai-education/ui-2.jpg", label:"演示 02 · 画一画", cap:"儿童创造力产品 · 交互演示 02"},
+      {type:"video-local", src:A+"ai-education/demo3.mp4", poster:A+"ai-education/ui-3.jpg", label:"演示 03 · 可交互游戏", cap:"儿童创造力产品 · 交互演示 03"}
+    ]},
+
+  { type:"project", kind:"重点项目 · 智能可穿戴", index:"03",
+    cover:A+"wearable1/board-1.jpg",
+    title:"BLISSHABIT · BFRBs 行为干预可穿戴",
+    sub:"需求洞察 / 智能硬件原型 / 体验迭代",
+    intro:"面向拔毛癖、抠皮等身体聚焦重复行为（BFRBs）的智能可穿戴配饰。完整走通「用户调研 → 行为洞察 → 硬件原型 → 可用性迭代测试」闭环；关键设计判断是把医疗设备做成时尚配饰、弱化医疗感，用情绪价值与差异化人群切入。",
+    method:["用户场景与痛点调研","人群调研 + 肌肉刺激对照实验","提醒-感知-干预闭环","原型可用性测试与迭代"],
+    media:[
+      {type:"img", src:A+"wearable1/board-1.jpg", cap:"BLISSHABIT · 项目概览"},
+      {type:"img", src:A+"wearable1/board-2.jpg", cap:"用户研究 / 行为洞察"},
+      {type:"img", src:A+"wearable1/board-3.jpg", cap:"概念与设计组件"},
+      {type:"img", src:A+"wearable1/board-4.jpg", cap:"硬件原型"},
+      {type:"img", src:A+"wearable1/board-5.jpg", cap:"佩戴与交互"},
+      {type:"img", src:A+"wearable1/board-6.jpg", cap:"最终概念"}
+    ]},
+
+  { type:"project", kind:"核心项目 · 智能硬件", index:"04",
+    cover:A+"bci/scene-1.jpg",
+    title:"非侵入式脑机（B轮）· 杭州｜VR 青少年心理干预",
+    sub:"非侵入式脑机 + AI 策略 / 场景洞察 / 产品定义",
+    intro:"面向青少年心理干预场景，结合非侵入式脑机信号、AI 策略与 VR 训练体验，梳理学生端和家长端的使用场景与需求，参与产品定义、功能规划与双端交互设计。重点关注评估、训练和反馈链路的可理解性与体验闭环。",
+    method:["非侵入式脑机 + AI 策略","场景洞察与需求分析","产品定义与功能规划","学生端 / 家长端交互设计","评估 → 训练 → 反馈"],
+    groups:[
+      { name:"设备与场景", images:[
+        {type:"img", src:A+"bci/scene-1.jpg", cap:"设备与使用场景"},
+        {type:"img", src:A+"bci/scene-2.jpg", cap:"使用场景"},
+        {type:"img", src:A+"bci/scene-3.jpg", cap:"使用场景"},
+        {type:"img", src:A+"bci/photo-1.jpg", cap:"现场"},
+        {type:"img", src:A+"bci/photo-2.jpg", cap:"现场"}
+      ]},
+      { name:"产品界面 · 学生端 / 家长端", images:[
+        {type:"img", src:A+"bci/ui-1.jpg", cap:"家长端 · 近期心理状态报告"},
+        {type:"img", src:A+"bci/ui-2.jpg", cap:"家长端 · VR 放松体验推荐"},
+        {type:"img", src:A+"bci/ui-3.jpg", cap:"学生端 · VR 计划整体管理"},
+        {type:"img", src:A+"bci/ui-4.jpg", cap:"学生端 · VR 正念解压模块"},
+        {type:"img", src:A+"bci/ui-5.jpg", cap:"家长端 · 体验与训练报告"},
+        {type:"img", src:A+"bci/ui-6.jpg", cap:"家长端 · 数据统计与趋势"}
+      ]}
+    ]},
+
+  { type:"project", kind:"核心项目 · 智能可穿戴", index:"05",
+    cover:A+"echo-guard-slides/slide-01.png",
+    title:"Echo Guard · 高速运动感知增强背带",
+    sub:"骑行安全 / ICF 模型 · 事故数据驱动",
+    intro:"面向高速骑行盲区的安全感知可穿戴。用 ICF 模型拆解骑行者的感知与行动链路，结合事故数据定义场景，通过体感反馈增强对后方来车与盲区的感知。以原型测试检验提醒时机与反馈方式。",
+    method:["场景调研与事故数据分析","ICF 模型拆解","后方盲区体感反馈","功能效果与主观体验验收"],
+    media:[
+      {type:"img", src:A+"echo-guard-slides/slide-01.png", cap:"01 · 项目封面"},
+      {type:"img", src:A+"echo-guard-slides/slide-02.png", cap:"02 · 研究背景"},
+      {type:"img", src:A+"echo-guard-slides/slide-03.png", cap:"03 · 设计定义与概念测试"},
+      {type:"img", src:A+"echo-guard-slides/slide-04.png", cap:"04 · 人体工学验证"},
+      {type:"img", src:A+"echo-guard-slides/slide-05.png", cap:"05 · 最终产品形态"},
+      {type:"img", src:A+"echo-guard-slides/slide-06.png", cap:"06 · 佩戴视图"},
+      {type:"img", src:A+"echo-guard-slides/slide-07.png", cap:"07 · 产品结构"},
+      {type:"img", src:A+"echo-guard-slides/slide-08.png", cap:"08 · 关键部件细节"},
+      {type:"img", src:A+"echo-guard-slides/slide-09.png", cap:"09 · 使用场景"}
+    ]},
+
+  { type:"project", kind:"整合展示 · 全国获奖", index:"06",
+    cover:A+"arvr/xunzi-2.jpg",
+    title:"AR / VR / MR 教育与文创（整合）",
+    sub:"产品负责人 / 苹果 · 腾讯 全国奖项",
+    intro:"大学期间以产品负责人身份参与的一组 AR/VR/MR 交互项目，多次获苹果移动应用创新赛、腾讯高校游戏创意大赛全国奖。以下为代表作，均可点击跳转高清视频演示。",
+    groups:[
+      { name:"遗韵拓新 · 非遗 AR 互动绘本", video:{provider:"Bilibili", src:"https://player.bilibili.com/player.html?aid=1601875889&bvid=BV1N2421K72q&cid=1470845971&page=1", poster:A+"arvr/yiyun-1.jpg"}, images:[
+        {type:"img", src:A+"arvr/yiyun-1.jpg", cap:"遗韵拓新 · 非遗 AR"},
+        {type:"img", src:A+"arvr/yiyun-2.jpg", cap:"遗韵拓新"},
+        {type:"img", src:A+"arvr/yiyun-3.jpg", cap:"遗韵拓新"}
+      ]},
+      { name:"玄池墨趣 · AR 书法体验", video:{provider:"Bilibili", src:"https://player.bilibili.com/player.html?aid=1751802429&bvid=BV1Bx421C76b&cid=1470843258&page=1", poster:A+"arvr/xuanchi-1.jpg"}, images:[
+        {type:"img", src:A+"arvr/xuanchi-1.jpg", cap:"玄池墨趣 · AR 书法"},
+        {type:"img", src:A+"arvr/xuanchi-2.jpg", cap:"玄池墨趣"},
+        {type:"img", src:A+"arvr/xuanchi-3.jpg", cap:"玄池墨趣"}
+      ]},
+      { name:"绘影拓新 · AIGC + AR 感知美育平台", video:{provider:"Bilibili", src:"https://player.bilibili.com/player.html?aid=1101960946&bvid=BV1Cw4m1R7CH&cid=1470600221&page=1", poster:A+"arvr/huiying-1.jpg"}, images:[
+        {type:"img", src:A+"arvr/huiying-1.jpg", cap:"绘影拓新 · AIGC+AR"},
+        {type:"img", src:A+"arvr/huiying-2.jpg", cap:"绘影拓新"},
+        {type:"img", src:A+"arvr/huiying-3.jpg", cap:"绘影拓新"}
+      ]},
+      { name:"寻字 · 基于手势识别的 VR 场景交互游戏", video:{provider:"Bilibili", src:"https://player.bilibili.com/player.html?aid=1851946935&bvid=BV1Hp421U7Rh&cid=1470947518&page=1", poster:A+"arvr/xunzi-1.jpg"}, images:[
+        {type:"img", src:A+"arvr/xunzi-1.jpg", cap:"寻字 · 手势识别 VR"},
+        {type:"img", src:A+"arvr/xunzi-2.jpg", cap:"寻字"},
+        {type:"img", src:A+"arvr/xunzi-3.jpg", cap:"寻字"}
+      ]},
+      { name:"寻音筑梦师 · MR 儿童音乐启蒙游戏", video:{provider:"Vimeo", src:"https://player.vimeo.com/video/957057821?app_id=122963&byline=1&badge=0&portrait=0&title=1", poster:A+"arvr/xunyin-1.jpg"}, images:[
+        {type:"img", src:A+"arvr/xunyin-1.jpg", cap:"寻音筑梦师 · MR"},
+        {type:"img", src:A+"arvr/xunyin-2.jpg", cap:"寻音筑梦师"},
+        {type:"img", src:A+"arvr/xunyin-3.jpg", cap:"寻音筑梦师"}
+      ]},
+      { name:"绘梦 · 儿童绘画 AIGC", images:[
+        {type:"img", src:A+"arvr/huimeng-1.jpg", cap:"绘梦 · 儿童绘画 AIGC"},
+        {type:"img", src:A+"arvr/huimeng-2.jpg", cap:"绘梦"},
+        {type:"img", src:A+"arvr/huimeng-3.jpg", cap:"绘梦"}
+      ]},
+      { name:"荣誉 · 全国奖项", images:[
+        {type:"img", src:A+"awards/tencent.jpg", cap:"2022 腾讯高校游戏创意制作大赛 · 优胜奖"},
+        {type:"img", src:A+"awards/apple.jpg", cap:"2023 苹果 × 浙大 移动应用创新赛 · 全国二等奖"}
+      ]}
+    ]},
+
+  { type:"project", kind:"整合展示 · 交互装置", index:"07",
+    cover:A+"interactive/luminous-01.jpg",
+    title:"交互装置（整合）",
+    sub:"公共空间 / 输入方式 / 光影反馈",
+    intro:"围绕公共空间中的互动行为与共同注意力，梳理参与者的场景和输入方式，设计可感知的光影反馈，并通过现场体验观察装置如何引导人与环境互动。",
+    groups:[
+      { name:"Harmonious · 城市公共空间交互装置", video:{provider:"Bilibili", src:"https://player.bilibili.com/player.html?aid=872695658&bvid=BV1zN4y197Li&cid=1244810668&page=1", poster:A+"interactive/harmonious-1.jpg"}, images:[
+        {type:"img", src:A+"interactive/harmonious-1.jpg", cap:"Harmonious · 以北京凉亭为媒介"},
+        {type:"img", src:A+"interactive/harmonious-2.jpg", cap:"Harmonious · 思考与概念"},
+        {type:"img", src:A+"interactive/harmonious-3.jpg", cap:"Harmonious · 光影交互"}
+      ]},
+      { name:"墨·衡 · 海报 + 交互装置", images:[
+        {type:"img", src:A+"interactive/moheng-1.jpg", cap:"墨·衡 · 海报+交互装置"},
+        {type:"img", src:A+"interactive/moheng-2.jpg", cap:"墨·衡"},
+        {type:"img", src:A+"interactive/moheng-3.jpg", cap:"墨·衡"}
+      ]},
+      { name:"《光影共鸣》Luminous Resonance",
+        meta:"创作者：王予晟，钟宸琬 · 数字交互装置 · 尺寸可变",
+        desc:"素材来源：广州市南沙区启慧学校。该交互装置的核心概念围绕“共同注意力”的建立与转移：观众以夸张或独特的输入方式引导装置的注意力，使其集中于特定对象或区域。当注意力被成功引导时，谱系儿童创作的雕塑逐渐显现，象征谱系人士在外界帮助与关注下形成共同注意力，并在社交互动中与他人建立联系。",
+        images:[
+        {type:"img", src:A+"interactive/luminous-01.jpg", cap:"《光影共鸣》Luminous Resonance · 展示现场"},
+        {type:"img", src:A+"interactive/luminous-02.jpg", cap:"共同注意力 · 输入与反馈"},
+        {type:"img", src:A+"interactive/luminous-03.jpg", cap:"谱系儿童雕塑逐渐显现"},
+        {type:"img", src:A+"interactive/luminous-04.jpg", cap:"数字交互装置 · 光影细节"},
+        {type:"img", src:A+"interactive/luminous-05.jpg", cap:"数字交互装置 · 现场图"}
+      ]}
+    ]},
+  { type:"visual", cover:A+"visual/poster-jin.jpg" },
+  { type:"honors" },
+  { type:"contact" }
+];
+
+/* ---------------- RENDER ---------------- */
+const stage = document.getElementById("stage");
+let slides = [];
+
+function titleOf(s){
+  if(s.type==="cover") return "封面 · Cover";
+  if(s.type==="visual") return "视觉艺术 全球参展";
+  if(s.type==="honors") return "荣誉与入选";
+  if(s.type==="contact") return "联系 · Contact";
+  return s.title;
+}
+function esc(x){return x;}
+
+function thumbHTML(m, gi, mi){
+  if(m.type==="video-local" || m.type==="video-embed"){
+    const prov = m.provider ? `<span class="prov">${m.provider}</span>` : "";
+    const preview = m.autoplayPreview
+      ? `<video class="preview-video autoplay-preview" src="${m.src}" poster="${thumbSrc(m.poster)}" muted loop playsinline preload="none" aria-label="${m.label} 自动播放预览"></video>`
+      : `<img src="${thumbSrc(m.poster)}" loading="lazy" decoding="async" alt="">`;
+    const label = m.autoplayPreview ? "自动播放预览 · 点击查看完整视频" : (m.label||"播放视频");
+    return `<div class="thumb vid" data-g="${gi}" data-m="${mi}">
+      ${preview}${prov}
+      <div class="play"><div class="ring"></div><div class="vlab">${label}</div></div>
+    </div>`;
+  }
+  return `<div class="thumb" style="aspect-ratio:${thumbRatio(m.src)}" data-g="${gi}" data-m="${mi}">
+      <img src="${thumbSrc(m.src)}" loading="lazy" decoding="async" alt="">
+      <div class="cap">${m.cap||""}</div>
+    </div>`;
+}
+
+function buildProject(s){
+  // normalize into groups
+  let groups;
+  if(s.groups){ groups = s.groups; }
+  else { groups = [{ name:null, images:s.media }]; }
+
+  let stripHTML = groups.map((g,gi)=>{
+    let items = [];
+    if(g.video){ items.push({...g.video, type:"video-embed", label:"高清视频演示", cap:g.name}); }
+    (g.images||[]).forEach(im=>items.push(im));
+    const meta = g.meta ? `<p>${g.meta}</p>` : "";
+    const desc = g.desc ? `<p class="group-desc">${g.desc}</p>` : "";
+    const heads = g.name ? `<div class="group-head"><h4>${g.name}</h4>${meta}${g.video?`<span class="gv" data-g="${gi}" data-m="0">▶ 视频演示</span>`:""}</div>${desc}` : "";
+    const thumbs = items.map((m,mi)=>thumbHTML(m,gi,mi)).join("");
+    return `<div class="strip-group">${heads}<div class="strip">${thumbs}</div></div>`;
+  }).join("");
+
+  const method = (s.method||[]).map(x=>`<span>${x}</span>`).join("");
+
+  return `<div class="wrap">
+    <div class="p-top">
+      <div class="p-meta">
+        <div class="p-kind"><i></i>${s.kind}</div>
+        <div class="p-title">${s.title}</div>
+        <div class="p-sub">${s.sub}</div>
+        <p class="p-intro">${s.intro}</p>
+        ${method?`<div class="p-method">${method}</div>`:""}
+        ${s.siteLink?`<a class="p-site-link" href="${s.siteLink}" target="_blank" rel="noopener noreferrer">打开 Home Pulse 交互演示 ↗</a>`:""}
+      </div>
+      <div class="p-index">${s.index}</div>
+    </div>
+    <div class="media-wrap">
+      <div class="media-bar">
+        <span class="lab">项目素材 · 点击放大 / 播放</span>
+        <button class="collapse-btn"><span class="ca">▾</span> 收起 / 展开</button>
+      </div>
+      <div class="strip-groups">${stripHTML}</div>
+    </div>
+  </div>`;
+}
+
+function buildCover(){
+  const today = new Date();
+  const age = today.getFullYear() - 2001 - (today.getMonth() < 6 ? 1 : 0);
+  const coverDots = COVER_IMAGES.map((_,i)=>`<button class="cover-dot${i===0?" active":""}" data-cover-goto="${i}" aria-label="切换到封面图 ${i+1}"></button>`).join("");
+  const projectLinks = DECK.map((s,i)=>({s,i})).filter(({s})=>s.type==="project"||s.type==="visual")
+    .map(({s,i})=>`<button class="cover-index-link" data-jump="${i}"><img class="cover-index-image" src="${thumbSrc(s.cover)}" loading="lazy" decoding="async" alt=""><span class="cover-index-label"><span class="n">${String(i).padStart(2,"0")}</span><span class="t">${titleOf(s)}</span></span></button>`).join("");
+  const moreLinks = DECK.map((s,i)=>({s,i})).filter(({s})=>["honors","contact"].includes(s.type))
+    .map(({s,i})=>`<button data-jump="${i}">${titleOf(s)}</button>`).join("");
+  return `<div class="wrap"><div class="cover">
+    <div class="cover-l">
+      <span class="eyebrow">AI / Product / Interaction</span>
+      <h1><span class="cover-title-main"><em>X</em> Builder</span><span class="cover-title-line">探索 AI Native 体验</span><span class="cover-title-last">科技向善 · Well-Being</span></h1>
+      <p class="cover-lead">从真实用户场景出发，探索 AI Native 交互与智能硬件。以需求洞察、原型测试和效果验收推动产品落地，同时衡量体验改善与商业价值。</p>
+      <div class="cover-meta">
+        <div><span class="k">Now</span>教育科技独角兽 · 深圳 · 创新业务 AI 产品经理</div>
+        <div><span class="k">Focus</span>AI Native · 智能硬件 · 体验验证 · 业务价值</div>
+        <div><span class="k">Contact</span>yushengw0702@gmail.com</div>
+      </div>
+      <div class="cover-personal" aria-label="个人信息">
+        <span>${age} 岁 · 2001.07 Born</span>
+        <span>MBTI · ENTP</span>
+        <span>旅行 · 科幻电影 · 独立游戏</span>
+      </div>
+    </div>
+    <div class="cover-r">
+      <div class="cover-carousel">
+        <img src="${COVER_IMAGES[0].src}" alt="${COVER_IMAGES[0].alt}" fetchpriority="high" decoding="async" data-cover-img>
+        <button class="cover-hit prev" data-cover-step="-1" aria-label="上一张封面图"></button>
+        <button class="cover-hit next" data-cover-step="1" aria-label="下一张封面图"></button>
+        <button class="cover-arrow prev" data-cover-step="-1" aria-label="上一张封面图">‹</button>
+        <button class="cover-arrow next" data-cover-step="1" aria-label="下一张封面图">›</button>
+        <div class="cover-dots">${coverDots}</div>
+        <div class="frame"></div>
+      </div>
+      <div class="badge"><b>X Builder · Product Thinking</b><br><span>需求洞察 · 原型设计 · 效果验收 · 持续迭代</span></div>
+    </div>
+  </div>
+    ${buildHomeSections()}
+    <nav class="cover-index" aria-label="作品集项目索引">
+      <div class="cover-index-head">项目索引 / PROJECTS</div>
+      <div class="cover-index-grid">${projectLinks}</div>
+      <div class="cover-index-more">${moreLinks}</div>
+    </nav>
+  </div>`;
+}
+
+const AWARDS = [
+  {year:"2026",brand:"Anker",logo:"",title:"首届黑客松挑战赛 决赛入围 · 队长"},
+  {year:"2023",brand:"Apple",logo:"apple.png",title:"移动应用创新赛 总决赛二等奖"},
+  {year:"2022",brand:"Apple",logo:"apple.png",title:"移动应用创新赛 总决赛三等奖"},
+  {year:"2022",brand:"百度",logo:"baidu.png",title:"人工智能创意赛 总决赛二等奖"},
+  {year:"2022",brand:"腾讯",logo:"tencent.png",title:"高校游戏创意制作大赛 总决赛优胜奖"},
+  {year:"2022",brand:"歌尔",logo:"goertek.png",title:"「歌尔杯」高校 AR/VR 挑战赛 总决赛二等奖"},
+  {year:"2021",brand:"腾讯",logo:"tencent.png",title:"高校游戏创意制作大赛 总决赛优胜奖"}
+];
+
+function buildHomeSections(){
+  const exp = [
+    {l:"2025.10 - 至今",t:"教育科技独角兽 · 深圳 · 创新业务部 AI 产品经理",b:"面向儿童创造场景，参与 AI Agent 与智能硬件结合的功能定义、原型设计与体验验证。"},
+    {l:"2024.8 - 2025.8",t:"香港科技大学（广州）· 人机交互科研助理 · 实习",b:"参与人机交互相关研究，关注用户、场景与交互体验之间的关系。"},
+    {l:"2023.9 - 2024.1",t:"百度巧舱商家智能体 · AI 产品助理 · 实习",b:"围绕商家智能体的用户场景、需求拆解与 AI 功能设计，关注能力与实际使用任务的匹配。"},
+    {l:"2020 - 2024",t:"山东大学 · 设计学（人机交互方向）·本科",b:"围绕用户需求、交互流程与原型设计建立产品基础。"}
+  ].map(e=>`<article class="tl-card"><span>${e.l}</span><h3>${e.t}</h3><p>${e.b}</p></article>`).join("");
+  const caps = ["需求调研","AI 场景定义","测试集设计","AI 策略设计","交互设计","用户教育","功能效果验收","Badcase 分析","数据分析","智能硬件","数据与体验迭代"]
+    .map((c,i)=>`<span class="chip${i<3?' hot':''}">${c}</span>`).join("");
+  const awards = AWARDS.map(a=>`<article class="award-item">
+    <div class="award-logo">${a.logo?`<img class="${a.brand==="Apple"?"apple":""}" src="${A}brands/${a.logo}" alt="${a.brand} logo">`:`<span class="award-wordmark">${a.brand}</span>`}</div>
+    <div class="award-copy"><b>${a.year}</b><p>${a.brand==="歌尔"?"":a.brand+" "}${a.title}</p></div>
+  </article>`).join("");
+  return `<section class="home-background" aria-label="背景">
+    <div class="sec-head">
+      <span class="eyebrow">Background</span>
+      <h2>背景</h2>
+      <p>过去，我循着热爱与兴趣，在交互设计、人机交互研究和 AI 产品实践中不断探索。方向虽在变化，我对技术应用边界的关注始终未变：从真实场景和具体问题出发，把技术做成可用、可验证的产品，为人创造更好的生活体验。</p>
+    </div>
+    <div class="about-grid">${exp}</div>
+    <div class="cap-row">${caps}</div>
+  </section>
+    <section class="about-awards" aria-label="荣誉">
+      <div class="sec-head"><span class="eyebrow">Recognition</span><h2>荣誉</h2></div>
+      <div class="award-list">${awards}</div>
+      <p class="award-note">……更多荣誉暂未列出，以上仅展示部分奖项。</p>
+    </section>`;
+}
+
+const MARKERS = [
+  {label:"北美",x:22.2,y:25,lx:-10},{label:"墨西哥",x:21.7,y:37.2},{label:"牙买加",x:28.5,y:39.9},
+  {label:"英国",x:49.4,y:20,lx:-22},{label:"波兰",x:55.3,y:21.1,lx:12},{label:"斯洛伐克",x:55.5,y:22.9,lx:30,ly:10},
+  {label:"希腊",x:56.1,y:28.3,ly:12},{label:"俄罗斯·莫斯科",x:60.4,y:19,lx:12},{label:"迪拜",x:65.4,y:36,lx:-8},
+  {label:"韩国",x:85.5,y:29.7,lx:18},{label:"安徽",x:82.6,y:32.3,lx:-42},{label:"深圳",x:81.7,y:37.5,lx:-34},{label:"台湾",x:83.6,y:36.8,lx:16}
+];
+function buildVisual(){
+  const thumbs = VISUAL_POSTERS.map((m,mi)=>`<div class="thumb" style="aspect-ratio:${thumbRatio(m.src)}" data-g="0" data-m="${mi}"><img src="${thumbSrc(m.src)}" loading="lazy" decoding="async" alt="${m.cap}"><div class="cap">${m.cap}</div></div>`).join("");
+  const exhibits = VISUAL_EXHIBITIONS.map((m,mi)=>`<div class="thumb" style="aspect-ratio:${thumbRatio(m.src)}" data-g="1" data-m="${VISUAL_POSTERS.length+mi}"><img src="${thumbSrc(m.src)}" loading="lazy" decoding="async" alt="${m.cap}"><div class="cap">${m.cap}</div></div>`).join("");
+  const flags = MARKERS.map(m=>`<span class="flag" style="--x:${m.x}%;--y:${m.y}%;--lx:${(m.lx||0)}px;--ly:${(m.ly||0)}px"><i></i><b>${m.label}</b></span>`).join("");
+  return `<div class="wrap">
+    <div class="p-top"><div class="p-meta">
+      <div class="p-kind"><i></i>整合展示 · 全球参展视觉</div>
+      <div class="p-title">视觉艺术 全球参展</div>
+      <div class="p-sub">艺术创作兴趣 / 11 国参展 · 世界五大海报展之一银奖</div>
+      <p class="p-intro">出于对视觉艺术与海报创作的兴趣，我持续探索图像叙事与公共议题。作品在 11 个国家 / 地区参展、累计获奖 90+，含世界五大海报展之一的第十七届墨西哥国际海报双年展银奖。艺术创作也影响着我对 AI 硬件品牌与体验的思考。</p>
+    </div><div class="p-index">08</div></div>
+    <div class="media-wrap">
+      <div class="media-bar"><span class="lab">代表作 · 点击放大</span>
+        <button class="collapse-btn"><span class="ca">▾</span> 收起 / 展开</button></div>
+      <div class="strip-groups">
+        <div class="strip-group"><div class="strip poster-strip">${thumbs}</div></div>
+        <div class="strip-group">
+          <div class="group-head"><h4>展出现场</h4><p>从原始 PPT 素材中提取</p></div>
+          <div class="strip exhibit-strip">${exhibits}</div>
+        </div>
+      </div>
+    </div>
+    <div class="map-block">
+      <div class="mh"><h4>Exhibition Footprint · 参展与评审足迹</h4>
+        <p>作品展出、奖项与评审经历覆盖的区域，呈现视觉创作在不同文化语境中的外部验证。</p></div>
+      <div class="map-canvas"><img class="world" src="${A}map/world-outline.svg" alt="世界地图轮廓">${flags}</div>
+      <div class="map-key">${MARKERS.map(m=>`<span>${m.label}</span>`).join("")}</div>
+    </div>
+  </div>`;
+}
+
+function buildHonors(){
+  const product = ["2023 Apple 移动应用创新赛二等奖","2022 Apple 移动应用创新赛总决赛三等奖","2022 百度人工智能创意赛二等奖","2022 腾讯高校游戏创意制作大赛优胜奖","2022 「歌尔杯」高校 AR/VR 挑战赛二等奖","2021 腾讯高校游戏创意制作大赛优胜奖"];
+  const visual = ["第十七届墨西哥国际海报双年展银奖（世界五大海报展）","2023 俄罗斯金蜜蜂平面设计双年展入选","2023 第六届波兰点布林国际海报双年展入展","2023 第二届韩国国际海报展 Top 100","2022 靳埭强设计奖入选奖","第四届温州国际设计双年展金奖","2024 俄罗斯金龟节 ECO-Poster 单元国际评审"];
+  const li = arr=>arr.map(x=>`<li>${x}</li>`).join("");
+  return `<div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Recognition</span>
+      <h2>荣誉与入选</h2>
+      <p>从产品与技术竞赛，到跨越多国的视觉展出，一组来自外部的验证。</p></div>
+    <div class="honor-grid">
+      <div class="honor-cols">
+        <article class="hpanel"><span class="t">Product / AI / Game / ARVR</span><ul>${li(product)}</ul></article>
+        <article class="hpanel"><span class="t">Poster / Visual / Exhibition</span><ul>${li(visual)}</ul></article>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildContact(){
+  return `<div class="wrap closing">
+    <h2>让 <em>AI Native</em><br>回应真实问题，<br>创造更好的生活体验。</h2>
+    <div class="closing-contact">
+      <a href="mailto:yushengw0702@gmail.com">yushengw0702@gmail.com</a>
+      <a href="tel:19290566092">19290566092</a>
+    </div>
+  </div>`;
+}
+
+DECK.forEach((s,i)=>{
+  const el = document.createElement("section");
+  el.className="slide";
+  el.dataset.i=i;
+  el.tabIndex=-1;
+  stage.appendChild(el);
+  slides.push(el);
+});
+
+function renderSlide(i){
+  const el=slides[i];
+  if(el.dataset.rendered) return;
+  const s=DECK[i];
+  if(s.type==="cover") el.innerHTML=buildCover();
+  else if(s.type==="visual") el.innerHTML=buildVisual();
+  else if(s.type==="honors") el.innerHTML=buildHonors();
+  else if(s.type==="contact") el.innerHTML=buildContact();
+  else el.innerHTML=buildProject(s);
+  el.dataset.rendered="true";
+}
+
+DECK.forEach((_,i)=>renderSlide(i));
+
+/* ---------------- NAV ---------------- */
+let cur=0;
+const total=DECK.length;
+const progress=document.getElementById("progress");
+
+let coverIndex=0;
+function setCover(i){
+  coverIndex=(i+COVER_IMAGES.length)%COVER_IMAGES.length;
+  const m=COVER_IMAGES[coverIndex];
+  document.querySelectorAll("[data-cover-img]").forEach(img=>{
+    img.src=m.src;
+    img.alt=m.alt;
+  });
+  document.querySelectorAll(".cover-dot").forEach((d,k)=>d.classList.toggle("active",k===coverIndex));
+  const next=new Image();
+  next.src=COVER_IMAGES[(coverIndex+1)%COVER_IMAGES.length].src;
+}
+function stepCover(d){ setCover(coverIndex+d); }
+
+function go(i,behavior="auto"){
+  const target=Math.max(0,Math.min(total-1,i));
+  const top=Math.max(0,slides[target].getBoundingClientRect().top+window.scrollY-60);
+  const motion=window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : behavior;
+  window.scrollTo({top,behavior:motion});
+  slides[target].focus({preventScroll:true});
+  try{ history.replaceState(null,"","#s="+target); }catch(e){}
+}
+const previewObserver=new IntersectionObserver(entries=>{
+  entries.forEach(({target:video,isIntersecting})=>{
+    if(isIntersecting && !document.getElementById("lb").classList.contains("open") && document.visibilityState==="visible") video.play().catch(()=>{});
+    else video.pause();
+  });
+},{rootMargin:"80px",threshold:.2});
+function syncPreviewVideos(){
+  previewObserver.disconnect();
+  document.querySelectorAll("video.autoplay-preview").forEach(video=>video.pause());
+  document.querySelectorAll("video.autoplay-preview").forEach(video=>previewObserver.observe(video));
+}
+function updateScrollState(){
+  const marker=window.scrollY+110;
+  for(let i=total-1;i>=0;i--){
+    if(slides[i].offsetTop<=marker){cur=i;break;}
+  }
+  const max=document.documentElement.scrollHeight-window.innerHeight;
+  progress.style.width=(max>0 ? window.scrollY/max*100 : 100)+"%";
+  if(location.hash!=="#s="+cur){
+    try{ history.replaceState(null,"","#s="+cur); }catch(e){}
+  }
+}
+let scrollFrame=0;
+window.addEventListener("scroll",()=>{
+  if(!scrollFrame) scrollFrame=requestAnimationFrame(()=>{scrollFrame=0;updateScrollState();});
+},{passive:true});
+window.addEventListener("resize",updateScrollState);
+window.addEventListener("hashchange",()=>{
+  const match=location.hash.match(/s=(\d+)/);
+  if(match) go(+match[1],"auto");
+});
+document.addEventListener("visibilitychange",syncPreviewVideos);
+
+document.addEventListener("keydown",e=>{
+  if(document.getElementById("lb").classList.contains("open")){
+    if(e.key==="Escape") closeLB();
+    if(e.key==="ArrowRight") lbStep(1);
+    if(e.key==="ArrowLeft") lbStep(-1);
+    return;
+  }
+});
+
+/* cover carousel */
+stage.addEventListener("click",e=>{
+  const jump=e.target.closest("[data-jump]");
+  if(jump){ go(Number(jump.dataset.jump)); return; }
+  const step=e.target.closest("[data-cover-step]");
+  if(step){
+    e.preventDefault();
+    stepCover(Number(step.dataset.coverStep));
+    return;
+  }
+  const dot=e.target.closest("[data-cover-goto]");
+  if(dot){
+    e.preventDefault();
+    setCover(Number(dot.dataset.coverGoto));
+  }
+});
+
+/* collapse media */
+stage.addEventListener("click",e=>{
+  const cb=e.target.closest(".collapse-btn");
+  if(cb){ cb.closest(".media-wrap").classList.toggle("collapsed"); }
+});
+
+/* ---------------- LIGHTBOX ---------------- */
+const lb=document.getElementById("lb"), lbStage=document.getElementById("lbStage"),
+      lbCap=document.getElementById("lbCap"), lbCount=document.getElementById("lbCount");
+let lbList=[], lbIdx=0;
+
+// build a per-slide media index lazily on click
+function collectMedia(slideEl){
+  const s=DECK[+slideEl.dataset.i];
+  let list=[];
+  if(s.type==="visual"){
+    VISUAL_POSTERS.forEach(m=>list.push({kind:"img",src:m.src,cap:m.cap}));
+    VISUAL_EXHIBITIONS.forEach(m=>list.push({kind:"img",src:m.src,cap:m.cap}));
+    return list;
+  }
+  // project
+  let groups = s.groups ? s.groups : [{images:s.media}];
+  groups.forEach(g=>{
+    if(g.video){ list.push({kind:"embed",src:g.video.src,provider:g.video.provider,cap:g.name||"视频演示"}); }
+    (g.images||[]).forEach(m=>{
+      if(m.type==="video-local") list.push({kind:"vlocal",src:m.src,cap:m.cap||m.label});
+      else if(m.type==="video-embed") list.push({kind:"embed",src:m.src,provider:m.provider,cap:m.cap});
+      else list.push({kind:"img",src:m.src,cap:m.cap});
+    });
+  });
+  return list;
+}
+
+stage.addEventListener("click",e=>{
+  const t=e.target.closest(".thumb, .gv");
+  if(!t) return;
+  const slideEl=t.closest(".slide");
+  lbList=collectMedia(slideEl);
+  const gi=+(t.dataset.g||0), mi=+(t.dataset.m||0);
+  const s=DECK[+slideEl.dataset.i];
+  const target=s.type==="visual" ? mi : flatIndex(s,gi,mi,t.classList.contains("gv"));
+  openLB(target);
+});
+
+function flatIndex(s,gi,mi,isGV,isVid){
+  let groups=s.groups?s.groups:[{images:s.media}];
+  let flat=0;
+  for(let ggi=0; ggi<groups.length; ggi++){
+    const g=groups[ggi];
+    const hasV=!!g.video;
+    if(ggi<gi){
+      flat += (hasV?1:0) + (g.images?g.images.length:0);
+      continue;
+    }
+    // ggi === gi
+    if(isGV){ return flat; } // the group video
+    if(hasV){
+      // thumbs order: video tile first (data-m=0), then images data-m=1..
+      return flat + mi;
+    } else {
+      return flat + mi;
+    }
+  }
+  return 0;
+}
+
+function renderLB(){
+  const m=lbList[lbIdx];
+  lbStage.innerHTML="";
+  if(m.kind==="img"){
+    const im=document.createElement("img"); im.src=m.src; lbStage.appendChild(im);
+  } else if(m.kind==="vlocal"){
+    const v=document.createElement("video"); v.src=m.src; v.controls=true; v.autoplay=true; v.playsInline=true; lbStage.appendChild(v);
+  } else if(m.kind==="embed"){
+    const d=document.createElement("div"); d.className="embed";
+    const f=document.createElement("iframe"); f.src=m.src; f.allfullscreen=true; f.setAttribute("allowfullscreen","true"); f.setAttribute("allow","autoplay; fullscreen; picture-in-picture"); f.setAttribute("scrolling","no");
+    d.appendChild(f); lbStage.appendChild(d);
+  }
+  lbCap.textContent=(m.cap||"")+(m.provider?"  ·  "+m.provider+" 高清演示":"");
+  lbCount.textContent=(lbIdx+1)+" / "+lbList.length;
+}
+function openLB(i){
+  document.querySelectorAll("video.autoplay-preview").forEach(video=>video.pause());
+  lbIdx=i; lb.classList.add("open"); document.body.classList.add("lightbox-open"); renderLB();
+}
+function closeLB(){ lb.classList.remove("open"); document.body.classList.remove("lightbox-open"); lbStage.innerHTML=""; syncPreviewVideos(); }
+function lbStep(d){ lbIdx=(lbIdx+d+lbList.length)%lbList.length; renderLB(); }
+document.getElementById("lbClose").onclick=closeLB;
+document.getElementById("lbPrev").onclick=()=>lbStep(-1);
+document.getElementById("lbNext").onclick=()=>lbStep(1);
+lb.addEventListener("click",e=>{ if(e.target===lb) closeLB(); });
+
+const m0=location.hash.match(/s=(\d+)/);
+setCover(0);
+syncPreviewVideos();
+requestAnimationFrame(()=>{
+  if(m0) go(+m0[1],"auto");
+  updateScrollState();
+});
+setInterval(()=>{
+  const carousel=document.querySelector(".cover-carousel");
+  if(!carousel || lb.classList.contains("open") || document.visibilityState!=="visible") return;
+  const rect=carousel.getBoundingClientRect();
+  if(rect.bottom>60 && rect.top<window.innerHeight) stepCover(1);
+},5200);
+</script>
+</body>
+</html>
