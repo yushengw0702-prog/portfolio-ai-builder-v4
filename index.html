@@ -60,10 +60,7 @@
   .progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:50}
   .section-nav{
     position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:35;
-    display:flex;flex-direction:column;align-items:center;padding:8px 3px;
-    border:1px solid var(--line);border-radius:20px;
-    background:rgba(255,255,255,.84);box-shadow:0 5px 20px rgba(17,17,20,.07);
-    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+    display:flex;flex-direction:column;align-items:center
   }
   .section-nav button{
     display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;
@@ -71,9 +68,10 @@
   }
   .section-nav button::before{
     content:"";width:7px;height:7px;border-radius:50%;
-    background:var(--line-strong);transition:background .2s,transform .2s
+    background:var(--faint);transition:background .2s,transform .2s
   }
-  .section-nav button:hover::before,.section-nav button:focus-visible::before{background:var(--accent);transform:scale(1.3)}
+  .section-nav button:hover::before{background:var(--ink-soft);transform:scale(1.3)}
+  .section-nav button:focus-visible::before{background:var(--accent);transform:scale(1.3)}
   .section-nav button.active::before{background:var(--accent);transform:scale(1.45)}
   .section-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:0;border-radius:50%}
 
